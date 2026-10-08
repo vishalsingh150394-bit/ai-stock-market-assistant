@@ -1,0 +1,21 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+langchain
+langchain-core
+langchain-community
+langchain-text-splitters
+langgraph
+langchain-groq
+langchain-google-genai
+langchain-openai
+langchain-anthropic
+langchain-huggingface
+sentence-transformers
+yfinance
+feedparser
+pandas
+numpy
+matplotlib
+streamlit
+gradio
+python-dotenv

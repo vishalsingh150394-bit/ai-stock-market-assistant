@@ -12,6 +12,11 @@ except Exception:
 
 from stock_agent import run_agent_safe, format_report, plot_price
 
+
+def safe_md(text) -> str:
+    """Escape characters that Streamlit's markdown would turn into strikethrough (~) or LaTeX ($)."""
+    return str(text).replace("~", "\\~").replace("$", "\\$")
+
 st.set_page_config(page_title="AI Stock Market Assistant", page_icon="📈", layout="wide")
 st.title("📈 AI Stock Market Assistant")
 st.caption("Multi-agent (LangGraph) · RAG over financial news · simulated BUY / SELL / HOLD")
@@ -29,11 +34,11 @@ if go:
             st.error(f"Something went wrong: {e}")
             st.stop()
 
-    st.markdown(format_report(s))
+    st.markdown(safe_md(format_report(s)))
     if not s.get("error"):
         st.pyplot(plot_price(s["ticker"], period))
         t1, t2, t3 = st.tabs(["News summary (RAG)", "Analysis", "Technical summary"])
-        t1.markdown(s["news_summary"])
-        t2.markdown(s["analysis"])
-        t3.markdown(s["technical_summary"])
+        t1.markdown(safe_md(s["news_summary"]))
+        t2.markdown(safe_md(s["analysis"]))
+        t3.markdown(safe_md(s["technical_summary"]))
         st.caption(f"News fetch rounds: {s.get('retry_count')} | analysis confidence: {s.get('confidence'):.0%}")

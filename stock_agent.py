@@ -64,7 +64,28 @@ def get_embeddings():
 
 # %%
 def fetch_history(ticker: str, period: str = "1y") -> pd.DataFrame:
-    return yf.Ticker(ticker).history(period=period, auto_adjust=True)
+    """Download price history with retries (Yahoo can rate-limit shared cloud servers)."""
+    import time
+    last_err = None
+    for attempt in range(3):
+        try:
+            df = yf.Ticker(ticker).history(period=period, auto_adjust=True)
+            if df is not None and not df.empty:
+                return df
+        except Exception as e:
+            last_err = e
+        time.sleep(2 * (attempt + 1))
+    try:                                   # second method as a fallback
+        df = yf.download(ticker, period=period, auto_adjust=True, progress=False, threads=False)
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
+        if df is not None and not df.empty:
+            return df
+    except Exception as e:
+        last_err = e
+    if last_err:
+        raise RuntimeError(str(last_err))
+    return pd.DataFrame()
 
 
 def add_indicators(df: pd.DataFrame) -> pd.DataFrame:
@@ -95,7 +116,8 @@ def get_price_snapshot(ticker: str, period: str = "1y") -> dict:
     except Exception as e:
         return {"error": f"Could not fetch data: {e}"}
     if df is None or df.empty or len(df) < 30:
-        return {"error": f"Not enough price data for '{ticker}'. Check the ticker (NSE stocks need .NS)."}
+        return {"error": f"Not enough price data for '{ticker}'. Check the ticker (NSE stocks need .NS), "
+                         "or Yahoo Finance may be blocking / rate-limiting this server. Try again in a minute."}
     df = add_indicators(df)
     last = df.iloc[-1]
     close = float(last["Close"])

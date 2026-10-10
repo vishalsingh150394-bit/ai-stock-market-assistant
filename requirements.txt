@@ -11,7 +11,7 @@ langchain-openai
 langchain-anthropic
 langchain-huggingface
 sentence-transformers
-yfinance
+yfinance>=0.2.66
 feedparser
 pandas
 numpy
